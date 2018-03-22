@@ -65,7 +65,7 @@ boolMonitor = False          # True: used for Monitor/ only
 boolClearData = True        # True: clear temporary data, to redo everything. 
 boolDominantChangeOnlyOnFriday = False   # True: in concat.py, only change dominant contract on Friday.
 UpperPositionSingleContract = 0.5
-boolUsingDB = False
+boolUsingDB = True
 
 NTradingDayPerYear = UtilsUtils.NTradingDayPerYear
 dfDetail = pd.read_excel(dirDataSource + '/SecuDetail.xlsx').set_index('SecuCode')
