@@ -177,7 +177,7 @@ def generateIndicatorHL(dictDataSpec):
         return np.sort(s)[NPoint]
 
     #NPoint = int(np.ceil(NDayHist * 0.1))
-    NPoint = 3
+    NPoint = 5
 
     # long when reaching the 2nd highest, short when reaching the 2nd lowest
     sNDayHigh = df[strPrice].rolling(NDayHist).apply(lambda x: func2ndMax(x, NPoint)).shift(1)
@@ -494,6 +494,8 @@ def generateIndicatorAOGE(dictDataSpec):
     ----------
     * ret: pandas.Series, indicator, including -1 for sell, 1 for buy, and 0 for closing
     """
+    import RoyalMountain.Tech.BTRecognizer as BTRecognizer
+    reload(BTRecognizer)
     
     df = dictDataSpec['df'].copy()
     df['indicator'] = np.nan
@@ -507,7 +509,7 @@ def generateIndicatorAOGE(dictDataSpec):
     strPrice = 'Close'
     s = df[strPrice]
     p = Np * s.pct_change().std()
-    dfHL = HLScript.funcHL(s, p)
+    dfHL = BTRecognizer.funcBT(df, strPrice, p)
     if dfHL.empty:
         return df['indicator']
 
@@ -685,8 +687,6 @@ def generateIndicatorTSCReboundASL(dictDataSpec):
     del ixLong, ixShort
 
     sIndicator = df['indicator'].ffill()
-    #ratioReboundUp = 1 + NRebound/2. * std
-    #ratioReboundDn = 1 - NRebound/2. * std 
     #ixLongClose = sTS[(sIndicator==1)&((sTS < sTS.quantile(1-QuantileTS*2))|(sClose < sClosePrevMax * ratioReboundDn))].index
     #ixShortClose = sTS[(sIndicator==-1)&((sTS > sTS.quantile(QuantileTS*2))|(sClose > sClosePrevMin * ratioReboundUp))].index
     ixLongClose = sTS[(sIndicator==1)&((sTS < sTS.quantile(1-QuantileTS*3))&(sClose < sClosePrevMax * ratioReboundDn))].index

@@ -216,7 +216,7 @@ def getAllContract(SecuCode, dtStart):
 def prepareTrend(dtStart):
     import ThaiExpress.Common.Utils as Utils
     reload(Utils)
-    listSecuCode = Utils.ParamRange.listSecuAll
+    listSecuCode = Utils.ParamRange.listSecuCFE
     
     #for SecuCode in dfAll.index.get_level_values('SecuCode').unique():
     #listSecuCode = ['cf.czc']

@@ -34,28 +34,100 @@ dfSecuPairIPA = pd.DataFrame([
 ############
 dictStrategyParamRange['ML_Test0'] = {
         'Secu': listSecuAll,
-        'strModelName': ['ML'],
-        'SubModelName': ['LogisticRegression', 'SVM', 'DecisionTreeClassifier'],
+        'strModelName': ['DecisionTreeClassifier', 'SVM', 'LogisticRegression', 'GaussianHMM'],
+        'NDayTrain': [60, 120, 240],
+        'NDayTest': [20, 40],
+        'strCloseAtDayEnd': listCloseAtDayEnd,
+        'freq': ['1day'],
+        }
+
+dictStrategyParamRange['ML_Test1'] = {
+        'Secu': listSecuAll,
+        'strModelName': ['DecisionTreeClassifier'],
         'NDayTrain': [240],
         'NDayTest': [20],
         'strCloseAtDayEnd': listCloseAtDayEnd,
+        'freq': ['1day'],
         }
+
 
 ############
 # Tech - IntraDay
 ############
 dictStrategyParamRange['DualThrustIF'] = {
-        'Secu': listSecuAll,
-        #'Secu': ['if.cfe'],
+        'Secu': ['if.cfe'],
         'strModelName': ['DualThrust'],
-        'NDay': [4],
-        'K': [0.1],
+        'NDay': [5],
+        'K': [0.25],
         'NPeriodRollingFast': [60],
         'strCloseAtDayEnd': listCloseAtDayEnd,
         'freq': ['1min'],
-        'VBB': [True]
+        'VBB': [True],
+        'VBBMinPerBar': [5],
         }
 
+dictStrategyParamRange['DualThrustIC'] = {
+        'Secu': ['ic.cfe'],
+        'strModelName': ['DualThrust'],
+        'NDay': [6],
+        'K': [0.25],
+        'NPeriodRollingFast': [10],
+        'strCloseAtDayEnd': listCloseAtDayEnd,
+        'freq': ['1min'],
+        'VBB': [True],
+        'VBBMinPerBar': [5],
+        }
+
+dictStrategyParamRange['DualThrustIH'] = {
+        'Secu': ['ih.cfe'],
+        'strModelName': ['DualThrust'],
+        'NDay': [6],
+        'K': [0.28],
+        'NPeriodRollingFast': [30],
+        'strCloseAtDayEnd': listCloseAtDayEnd,
+        'freq': ['1min'],
+        'VBB': [True],
+        'VBBMinPerBar': [5],
+        }
+
+dictStrategyParamRange['DualThrustGuReview'] = {
+        'Secu': ['ih.cfe'],
+        'strModelName': ['DualThrust'],
+        'NDay': [5,6],
+        'K': [0.1, 0.15, 0.2,  0.25],
+        'NPeriodRollingFast': [3, 10, 30, 60, 120],
+        'strCloseAtDayEnd': [None],
+        'freq': ['1min'],
+        'VBB': [True],
+        'VBBMinPerBar': [5],
+        }
+
+dictStrategyParamRange['DBOIIGuReview'] = {
+        'Secu': ['ic.cfe'],
+        'strModelName': ['DBOII'],
+        'NPeriodBBANDS': [5, 10, 20],
+        'WidthBBANDS': [1.5, 2.0],
+        'NPeriodRollingSlow': [10, 20, 40, 60],
+        'NPeriodRollingFast': [3, 5, 10],
+        'strCloseAtDayEnd': listCloseAtDayEnd,
+        'freq': ['1min'],
+        'VBB': [True],
+        'VBBMinPerBar': [5],
+        }
+
+dictStrategyParamRange['TSCGu'] = {
+        'Secu': ['if.cfe', 'ih.cfe', 'ic.cfe'],
+        'strModelName': ['TSC'],
+        'NDayHist': [80],
+        'QuantileTS': [0.1],
+        'ratioExtreme': [0.8], 
+        'NRebound': [4.0],
+        'strMethodTrend': ['TS2'],
+        'strCloseAtDayEnd': listCloseAtDayEnd,
+        'freq': ['1day'],
+        }
+
+#--------
 dictStrategyParamRange['DualThrust'] = {
         'Secu': listSecuAll,
         'strModelName': ['DualThrust'],
@@ -127,12 +199,13 @@ dictStrategyParamRange['FD_Review'] = {
 # Tech - InterDay
 ############
 dictStrategyParamRange['MA'] = {
-        'Secu': listSecuAll,
+        #'Secu': listSecuAll,
+        'Secu': ['if.cfe'],
         'strModelName': ['MA'],
-        #'NDayFast': [10, 20, 30],
-        #'NDaySlow': [20, 40, 55, 80, 160],
-        'NDayFast': [10],
-        'NDaySlow': [55],
+        'NDayFast': [1,2, 3, 5, 10, 15, 20, 30],
+        'NDaySlow': [5,10,15,20, 40, 60, 80, 120, 240],
+        #'NDayFast': [5],
+        #'NDaySlow': [30],
         'strCloseAtDayEnd': listCloseAtDayEnd,
         'freq': ['1day'],
         }
@@ -184,6 +257,7 @@ dictStrategyParamRange['HL2'] = {
 
 dictStrategyParamRange['HL_Review'] = {
         'Secu': listSecuAll,
+        #'Secu': ['if.cfe'],
         'strModelName': ['HL'],
         'NDayHist': [15,20,25,30],
         'NDayHistSL': [10],
@@ -217,7 +291,7 @@ dictStrategyParamRange['TSCReboundASL_IF'] = {
 
 dictStrategyParamRange['TSCReboundASL_Review2'] = {
         'Secu': listSecuAll,
-        'strModelName': ['TSCReboundASL'],
+        'strModelName': ['TSC'],
         'NDayHist': [30, 60, 90],
         'QuantileTS': [0.10],
         'ratioExtreme': [0.8, 0.9], 

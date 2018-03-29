@@ -24,10 +24,16 @@ def generateXY(df, NDayTest):
     boolMomentum = True
     boolMomentumCarry = False
     boolCarry = False
+    
+    # assign dfTS
+    if boolMomentumCarry or boolCarry:
+        dfTS = dictDataSpec['dfTS']
+        ixCommon = dfRaw.index.intersection(dfTS.index.get_level_values('TradingDay'))
+        dfRaw.ix[ixCommon, 'TS2'] = dfTS.xs(dictDataSpec['Secu'], level='SecuCode').ix[ixCommon, 'TS2']
 
     # momentum
     if boolMomentum:
-        listNDayMOM = [10, 20, 60]
+        listNDayMOM = [5, 10, 20, 60]
         strColumn = 'Close'
         for nDayMOM in listNDayMOM:
             strFactor = 'MOM%d'%nDayMOM
@@ -53,17 +59,11 @@ def generateXY(df, NDayTest):
     df = df[df[listFactor].isnull().sum(axis=1)==0]
 
     # Y
-    boolDiscretize = False
-    if boolDiscretize:
-        NBin = 8
-        for strFactor in listFactor:
-            NFactor = df[strFactor].dropna().size
-            df[strFactor] = np.ceil(df[strFactor].rank() / float(NFactor) * NBin)
-            df[strFactor] = df[strFactor].astype(int)
-
-    df['Y'] = df[strColumn] / df[strColumn].shift(NDayTest) - 1
-    df['Y'] = df['Y'].shift(-NDayTest)
-    df['Y'] = df['Y'].apply(lambda x: -1 if x < 0 else 1)
+    strColumnY = 'Close'
+    df['ReturnFuture'] = df[strColumnY] / df[strColumnY].shift(NDayTest) - 1
+    df['ReturnFuture'] = df['ReturnFuture'].shift(-NDayTest)
+    ixNotNull = df[df['ReturnFuture'].isnull()==False].index
+    df.ix[ixNotNull, 'Y'] = df.ix[ixNotNull, 'ReturnFuture'].apply(lambda x: -1 if x < 0 else 1)
 
     return df, listFactor
 
@@ -72,32 +72,30 @@ def generateXY(df, NDayTest):
 #########################################
 def prepareDictModelPoint(dictDataSpec):
     dictModel = {}
-    if dictDataSpec['SubModelName'] == 'SVM':
+    if dictDataSpec['strModelName'] == 'SVM':
         dictModel['name'] = 'SVM'
         dictModel['kernel'] = 'linear'
         #dictModel['kernel'] = 'rbf'
         #dictModel['C'] = 1.
         #dictModel['gamma'] = 0.1
-    elif dictDataSpec['SubModelName'] == 'DecisionTreeClassifier':
+    elif dictDataSpec['strModelName'] == 'DecisionTreeClassifier':
         dictModel['name'] = 'DecisionTreeClassifier'
         dictModel['min_samples_leaf'] = 20
-    elif dictDataSpec['SubModelName'] == 'LogisticRegression':
+    elif dictDataSpec['strModelName'] == 'LogisticRegression':
         dictModel['name'] = 'LogisticRegression'
-    elif dictDataSpec['SubModelName'] == 'MultinomialNB':
+    elif dictDataSpec['strModelName'] == 'MultinomialNB':
         dictModel['name'] = 'MultinomialNB'
-    elif dictDataSpec['SubModelName'] == 'MultinomialNBSymbol':
+    elif dictDataSpec['strModelName'] == 'MultinomialNBSymbol':
         dictModel['name'] = 'MultinomialNBSymbol'
+    elif dictDataSpec['strModelName'] == 'GaussianHMM':
+        dictModel['name'] = 'GaussianHMM'
+        dictModel['SEED_INSIDE_MODEL'] = 0
 
     return dictModel
 
 def generateIndicatorPoint(dictDataSpec):
     dfRaw = dictDataSpec['df'].copy()
     dfRaw['indicator'] = np.nan
-
-    # assign dfTS
-    dfTS = dictDataSpec['dfTS']
-    ixCommon = dfRaw.index.intersection(dfTS.index.get_level_values('TradingDay'))
-    dfRaw.ix[ixCommon, 'TS2'] = dfTS.xs(dictDataSpec['Secu'], level='SecuCode').ix[ixCommon, 'TS2']
 
     # param
     NDayTrain = dictDataSpec['NDayTrain']
@@ -108,7 +106,7 @@ def generateIndicatorPoint(dictDataSpec):
 
     # generate XY
     dfFactor, listFactor = generateXY(dfRaw, NDayTest)
-    dfFactor = dfFactor[listFactor + ['Y']].dropna()
+    dfFactor = dfFactor[listFactor + ['Y', 'ReturnFuture']].dropna()
 
     # train & test
     listNIndex = range(NDayTrain, dfRaw.index.size, NDayTest)
@@ -117,39 +115,42 @@ def generateIndicatorPoint(dictDataSpec):
     for nTrainEnd in listNIndex:
         # calculate factor
         nTrainStart = nTrainEnd - NDayTrain
-        nTestStart = nTrainEnd
-        nTestEnd = nTrainEnd + NDayTest
 
-        dfTrain = dfFactor.iloc[nTrainStart:nTrainEnd-NDayTest]  # dfFactor.iloc[nTrainEnd-NDayTest:nTrainEnd]['Y'] is future information
-        dfTest = dfFactor.iloc[nTestStart:nTestEnd]
-        
-        if dfTrain.index.size < 5 or dfTest.empty:
+        dfTrain = dfFactor.iloc[nTrainStart:nTrainEnd]  # dfFactor.iloc[nTrainEnd-NDayTest:nTrainEnd]['Y'] is future information
+        if dfTrain.index.size < 5:
             continue
 
         # train 
         dictParam = {}
-        dictParam['X'] = dfTrain[listFactor].values
-        dictParam['Y'] = dfTrain['Y'].values
-        if dfTrain['Y'].value_counts().size == 1:
-            if model is None:
-                print 'no model available'
-                continue
-            else:
-                pass
+        dictParam['X'] = dfTrain.ix[:-NDayTest, listFactor].values
+        dictParam['Y'] = dfTrain.ix[:-NDayTest, 'Y'].values
+        if dfTrain.ix[:-NDayTest, 'Y'].value_counts().size <= 1:
+            continue
         else:
             model = Model.GeneralModel(dictModel)
             model.fit(dictParam)
-
-        # test
-        dictParam = {}
-        dictParam['X'] = dfTest[listFactor].values
-        YPredicted = model.predict(dictParam)
         
+        # determine direction for unsupervised learning, not necessary for supervised learning
+        YValidated = model.predict(dictParam)
+        dfTrain.ix[:-NDayTest, 'YValidated'] = YValidated
+        dfReturnFutureMean = dfTrain.ix[:-NDayTest].groupby('YValidated')['ReturnFuture'].mean()
+        YBullish = dfReturnFutureMean.argmax()
+
+        # make prediction
+        dictParam = {}
+        dictParam['X'] = dfTrain[listFactor].values
+        dictParam['Y'] = np.zeros(dfTrain['Y'].values.shape)
+        YPredicted = model.predict(dictParam)
+
         # append output
-        seriesIndicatorAll.ix[dfTest.index[0]] = YPredicted[0]
+        if YPredicted[-1] == YBullish:
+            indicator = 1
+        else:
+            indicator = -1
+        seriesIndicatorAll.ix[dfTrain.index[-1]] = indicator
 
         # correct or not
-        print dfRaw.index[nTrainEnd], YPredicted[0], dfTest.ix[0, 'Y']
+        print dfRaw.index[nTrainEnd], indicator
 
     # 
     return seriesIndicatorAll
@@ -158,7 +159,7 @@ def generateIndicatorPoint(dictDataSpec):
 # Sequence
 #########################################
 def prepareDictModelSequence(dictDataSpec):
-    if dictDataSpec['SubModelName'] == 'CNN':
+    if dictDataSpec['strModelName'] == 'CNN':
         dictModel = {
             'strFilePrefix': './', 
             'learning_rate': 0.001,
@@ -170,7 +171,7 @@ def prepareDictModelSequence(dictDataSpec):
             'NPred': 5,
             'NBatchSize': 128,
             'NBatchToTrain': 250,
-            'strModelName': dictDataSpec['SubModelName'],
+            'strModelName': dictDataSpec['strModelName'],
             'SEED': 0,
         }
 
@@ -193,7 +194,7 @@ def generateIndicatorSequence(dictDataSpec):
 
     # prepare data 
     dictParam = {}
-    dictParam['strModelName'] = dictDataSpec['SubModelName']
+    dictParam['strModelName'] = dictDataSpec['strModelName']
 
     # train & test
 

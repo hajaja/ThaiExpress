@@ -192,7 +192,7 @@ def getTradingDataPoint_Commodity_DB(dictDataSpec):
     if freq == '1day':
         import CommodityDataBase as CDB
         reload(CDB)
-        df = CDB.Utils.UtilsDB.readDB(CDB.Utils.UtilsDB.DAILY_DOMINANT_DB_NAME, Secu, dtBackTestStart)
+        df = CDB.Utils.UtilsDB.readDB(CDB.Utils.UtilsDB.DAILY_DOMINANT_DB_NAME, Secu, dtBackTestStart-datetime.timedelta(365*2, 1))
         #df['trade_date'] = df['trade_date'].apply(lambda x: parse(str(int(x))))
         df['Close'] = (1+df['PCT']).cumprod()
         df['High'] = df['HighRaw'] / df['CloseRaw'] * df['Close']
@@ -208,28 +208,46 @@ def getTradingDataPoint_Commodity_DB(dictDataSpec):
         import CommodityDataBase as CDB
         reload(CDB)
         strDirCache = dirDataSource + '/Cache1min/'
-        strFileCache = strDirCache + Secu + '.pickle'
         if os.path.exists(strDirCache) is False:
             os.mkdir(strDirCache)
-        if os.path.exists(strFileCache):
-            df = pd.read_pickle(strFileCache)
-        else:
-            df = CDB.Utils.UtilsDB.readDB1minDominant(CDB.Utils.UtilsDB.strMySQLDB, Secu)
-            df = df.set_index('datetime')
-            df.index.name = 'dtEnd'
-            df['Close'] = (df['PCT']+1).cumprod()
-            df['High'] = df['HighRaw'] / df['CloseRaw'] * df['Close']
-            df['Low'] = df['LowRaw'] / df['CloseRaw'] * df['Close']
-            df['Open'] = df['OpenRaw'] / df['CloseRaw'] * df['Close']
-            df.to_pickle(strFileCache)
+
 
         # vwp 
-        if dictDataSpec.has_key('VBB') and dictDataSpec['VBB'] is True:
-            strFileCache = strDirCache + Secu + '_vwp.pickle'
+        if dictDataSpec.has_key('VBB') and dictDataSpec['VBB']==True:
+            strFileCacheVBB = strDirCache + Secu + '_vwp_%d.pickle'%dictDataSpec['VBBMinPerBar']
+            if os.path.exists(strFileCacheVBB):
+                df = pd.read_pickle(strFileCacheVBB)
+            else:
+                # time based bar
+                strFileCache = strDirCache + Secu + '.pickle'
+                if os.path.exists(strFileCache):
+                    df = pd.read_pickle(strFileCache)
+                else:
+                    df = CDB.Utils.UtilsDB.readDB1minDominant(CDB.Utils.UtilsDB.strMySQLDB, Secu)
+                    df = df.set_index('datetime')
+                    df.index.name = 'dtEnd'
+                    df['Close'] = (df['PCT']+1).cumprod()
+                    df['High'] = df['HighRaw'] / df['CloseRaw'] * df['Close']
+                    df['Low'] = df['LowRaw'] / df['CloseRaw'] * df['Close']
+                    df['Open'] = df['OpenRaw'] / df['CloseRaw'] * df['Close']
+                    df.to_pickle(strFileCache)
+
+                # read 1min data
+                df = calculateVolumeBasedBar(df, dictDataSpec['VBBMinPerBar'])
+                df.to_pickle(strFileCacheVBB)
+        else:
+            # time based bar
+            strFileCache = strDirCache + Secu + '.pickle'
             if os.path.exists(strFileCache):
                 df = pd.read_pickle(strFileCache)
             else:
-                df = calculateVolumeBasedBar(df)
+                df = CDB.Utils.UtilsDB.readDB1minDominant(CDB.Utils.UtilsDB.strMySQLDB, Secu)
+                df = df.set_index('datetime')
+                df.index.name = 'dtEnd'
+                df['Close'] = (df['PCT']+1).cumprod()
+                df['High'] = df['HighRaw'] / df['CloseRaw'] * df['Close']
+                df['Low'] = df['LowRaw'] / df['CloseRaw'] * df['Close']
+                df['Open'] = df['OpenRaw'] / df['CloseRaw'] * df['Close']
                 df.to_pickle(strFileCache)
 
         df = df[df.index >= dtBackTestStart]
@@ -275,7 +293,7 @@ def getTradingDataPoint_Commodity_File(dictDataSpec):
         dfXY.index.name = 'dtEnd'
     return dfXY
 
-def calculateVolumeBasedBar(df):
+def calculateVolumeBasedBar(df, VBBMinPerBar):
     # find prev volume
     df['trade_date'] = df.index.strftime('%Y%m%d')
     sDailyVolume = df.reset_index().groupby('trade_date')['Volume'].sum()
@@ -286,11 +304,17 @@ def calculateVolumeBasedBar(df):
     df = df.reset_index().set_index('dtEnd').sort_index()
     def funcSplitVBB(df, sDailyVolumePre):
         print df.name
+        if df.index.size < VBBMinPerBar * 5:
+            listColumnOut = ['Open', 'High', 'Low', 'Close', 'Volume', 'vwp']
+            df['vwp'] = df['Close']
+            df = df.reset_index()
+            return df[listColumnOut]
         # param
         timeMarketEndMorning = datetime.time(11,30)
         # find start & end of each bin
         volumeYesterday = sDailyVolumePre.ix[df.name]
-        volumePerInterval = volumeYesterday / (df.index.size / 4)
+        volumePerInterval = volumeYesterday / (df.index.size / VBBMinPerBar)
+        volumePerInterval = int(volumePerInterval)
         df['volumeCumulated'] = df['Volume'].cumsum() % volumePerInterval
         df['volumeCumulatedPrev'] = df['volumeCumulated'].shift(1)
         df.ix[0, 'volumeCumulatedPrev'] = volumeYesterday
@@ -489,7 +513,8 @@ def getFileAddressForTopPort(strParamSweep):
     for dictForTopPort in listDictForTopPort:
         listFileAddress = []
         dictForTopPort = dict((key,value) for key, value in dictForTopPort.iteritems() if key in dictStrategyParamRange[strParamSweep])
-        dictForTopPort['Secu'] = listSecuAll
+        #dictForTopPort['Secu'] = listSecuAll
+        dictForTopPort['Secu'] = dictStrategyParamRange[strParamSweep]['Secu']
         dictPerTopPort = dict(dictForTopPort)
         listDictDataSpec = sweepParam(dictDataSpecTemplate, dictForTopPort)
         for dictDataSpec in listDictDataSpec:

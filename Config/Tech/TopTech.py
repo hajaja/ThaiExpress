@@ -82,6 +82,11 @@ for nSpec, dictDataSpec in enumerate(listDictDataSpec):
     strategy = Strategy.Strategy(dfAll.ix[seriesIndicatorAll.index], dictParam)
     strategy.df['indicator'] = seriesIndicatorAll
     dictResultS = strategy.evaluateLongShortSimplified()
+    CR = dictResultS['returnAnnualized']/dictResultS['maxDD']
+    #print '%0.2f'%CR, dictDataSpec['NDaySlow'], dictDataSpec['NDayFast'], dictResultS['returnAnnualized'], dictResultS['maxDD'], 
+    #print dictDataSpec['K'], dictDataSpec['NDay'], dictDataSpec['NPeriodRollingFast']
+    print CR
+    #raise Exception
 
     # add to dict
     strategy.df = strategy.df[['indicator']]    # for memory
@@ -89,6 +94,8 @@ for nSpec, dictDataSpec in enumerate(listDictDataSpec):
 
     # save data
     del dictDataSpec['df']
+    if 'dfTS' in dictDataSpec:
+        del dictDataSpec['dfTS']
     sDataSpec = pd.Series(dictDataSpec)
     strFileAddress = Utils.dirResultPerCase + dictDataSpec['strCase'] + '.pickle'
     sDataSpec.to_pickle(strFileAddress)
