@@ -42,8 +42,11 @@ def generateIndicatorTech(dictDataSpec):
         seriesIndicator = generateIndicatorAOGE(dictDataSpec)
     elif dictDataSpec['strModelName'] == 'TALib':
         seriesIndicator = generateIndicatorTALib(dictDataSpec)
+    elif dictDataSpec['strModelName'] == 'Spider':
+        seriesIndicator = generateIndicatorSpider(dictDataSpec)
 
     seriesIndicator[dictDataSpec['df']['Volume'] < Utils.NThresholdVolume] = 0
+    #raise Exception
     seriesIndicator = Utils.UtilsUtils.keepOperation(seriesIndicator)
     return seriesIndicator
 ##################
@@ -911,3 +914,40 @@ def generateIndicatorTSCRebound(dictDataSpec):
     
     return ret
 
+def generateIndicatorSpider(dictDataSpec):
+    import ThaiExpress.Config.Spider as Spider
+    reload(Spider)
+    # read ITS, UTS, MTS 
+    dfSentiment = Spider.UtilsSpider.getSpiderData(dictDataSpec)
+    dfSentiment = dfSentiment.set_index('trade_date')
+    dfSentiment = dfSentiment.ffill()
+
+    # generate indicator
+    strIndicator = 'MSD'
+    dfSentiment['MSD'] = dfSentiment['ITS'] - dfSentiment['UTS']
+    dfSentiment['lambda'] = dfSentiment['MSD'].rolling(dictDataSpec['NDayLookBack']).mean()
+    
+    strIndicator = 'ITS'
+    dfSentiment[strIndicator] = dfSentiment[strIndicator].ffill()
+    print dfSentiment[strIndicator].describe()
+    dfSentiment['lambda'] = -0.06
+    #dfSentiment['lambda'] = dfSentiment[strIndicator].rolling(240).quantile(0.5)
+    ixLong = dfSentiment[strIndicator] > dfSentiment['lambda']
+    ixShort = dfSentiment[strIndicator] < dfSentiment['lambda']
+
+    #alphaCenter = 0.3
+    #alphaWidth = 0.05
+    #dfSentiment['lambdaLower'] = dfSentiment[strIndicator].quantile(alphaCenter - alphaWidth)
+    #dfSentiment['lambdaUpper'] = dfSentiment[strIndicator].quantile(alphaCenter + alphaWidth)
+    #ixLong = dfSentiment[strIndicator] > dfSentiment['lambdaUpper']
+    #ixShort = dfSentiment[strIndicator] < dfSentiment['lambdaLower']
+
+    dfSentiment.ix[ixLong, 'indicator'] = 1
+    dfSentiment.ix[ixShort, 'indicator'] = -1
+    seriesIndicator = dfSentiment['indicator']
+
+    # return
+    return seriesIndicator
+#
+#
+#

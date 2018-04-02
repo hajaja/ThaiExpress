@@ -25,7 +25,7 @@ def generateIndicator(dictDataSpec):
         import ThaiExpress.Config.Tech.UtilsIntraDay as UtilsIntraDay
         reload(UtilsIntraDay)
         return UtilsIntraDay.generateIndicatorTech(dictDataSpec)
-    elif dictDataSpec['strModelName'] in ['TALib', 'MARUBOZU', 'MA', 'HL', 'BT', 'BTBreak', 'TSC', 'TSCRebound', 'TSCReboundA', 'TSCReboundASL', 'AOGE']:
+    elif dictDataSpec['strModelName'] in ['TALib', 'MARUBOZU', 'MA', 'HL', 'BT', 'BTBreak', 'TSC', 'TSCRebound', 'TSCReboundA', 'TSCReboundASL', 'AOGE', 'Spider']:
         import ThaiExpress.Config.Tech.UtilsInterDay as UtilsInterDay
         reload(UtilsInterDay)
         return UtilsInterDay.generateIndicatorTech(dictDataSpec)

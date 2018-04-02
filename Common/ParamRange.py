@@ -52,13 +52,23 @@ dictStrategyParamRange['ML_Test1'] = {
 
 
 ############
-# Tech - IntraDay
+# Gu Zhi Qi Huo
 ############
+
+dictStrategyParamRange['MARUBOZUGu'] = {
+        'Secu': ['if.cfe'],
+        'strModelName': ['MARUBOZU'],
+        'NDayHist': [240],
+        'LLThreshold': [0.7], 
+        'strCloseAtDayEnd': listCloseAtDayEnd,
+        'freq': ['1day'],
+        }
+
 dictStrategyParamRange['DualThrustIF'] = {
         'Secu': ['if.cfe'],
         'strModelName': ['DualThrust'],
-        'NDay': [5],
-        'K': [0.25],
+        'NDay': [10],
+        'K': [0.1],
         'NPeriodRollingFast': [60],
         'strCloseAtDayEnd': listCloseAtDayEnd,
         'freq': ['1min'],
@@ -120,14 +130,36 @@ dictStrategyParamRange['TSCGu'] = {
         'strModelName': ['TSC'],
         'NDayHist': [80],
         'QuantileTS': [0.1],
-        'ratioExtreme': [0.8], 
+        'ratioExtreme': [0.9], 
         'NRebound': [4.0],
         'strMethodTrend': ['TS2'],
         'strCloseAtDayEnd': listCloseAtDayEnd,
         'freq': ['1day'],
         }
 
-#--------
+dictStrategyParamRange['SpiderGu'] = {
+        'Secu': ['if.cfe', 'ih.cfe', 'ic.cfe'],
+        'strModelName': ['Spider'],
+        'NTopBroker': [20],
+        'NDayLookBack': [23],
+        'ContractRange': ['DominantContract'],
+        'strCloseAtDayEnd': listCloseAtDayEnd,
+        'freq': ['1day'],
+        }
+
+dictStrategyParamRange['SpiderAll'] = {
+        'Secu': listSecuAll,
+        'strModelName': ['Spider'],
+        'NTopBroker': [20],
+        'NDayLookBack': [23],
+        'ContractRange': ['DominantContract'],
+        'strCloseAtDayEnd': listCloseAtDayEnd,
+        'freq': ['1day'],
+        }
+
+############
+# Tech - IntraDay
+############
 dictStrategyParamRange['DualThrust'] = {
         'Secu': listSecuAll,
         'strModelName': ['DualThrust'],

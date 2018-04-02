@@ -103,7 +103,7 @@ class Strategy:
         seriesReturnPCTHoldDaily = seriesReturnPCTHoldDaily.groupby(seriesReturnPCTHoldDaily.index.date).apply(funcCalculateDailyReturn)
         self.seriesReturnPCTHoldDaily = seriesReturnPCTHoldDaily
         dictResult = {}
-        dictResult['ReturnFinal'] = (seriesReturnPCTHoldDaily + 1).cumprod()[-1]
+        dictResult['ReturnFinal'] = (seriesReturnPCTHoldDaily + 1).cumprod().dropna()[-1]
         dictResult['maxDD'] = seriesDD.max()
         dictResult['DTMaxDD'] = seriesDD.argmax()
         dictResult['returnAnnualized'] = np.power(dictResult['ReturnFinal'], 250. / len(seriesReturnPCTHoldDaily)) - 1.
@@ -114,6 +114,7 @@ class Strategy:
 
         del seriesCumulatedValue, seriesMaxUntilNow, seriesDD
         gc.collect()
+
         return dictResult
 
     def stopProfit(self, decimalStopProfit):

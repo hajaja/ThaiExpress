@@ -66,8 +66,8 @@ def saveTB_DAILY(strDB, strTB, df, listColumnIndex=['code', 'trade_date']):
         sqlAlterColumnCode = "ALTER TABLE {0} MODIFY code varchar(30) NOT NULL".format(strTB)
         cur.execute(sqlAlterColumnCode)
         for strColumn in set(listColumnIndex).difference(set(['code', 'trade_date'])):
-            if strColumn.startswith('str') or strColumn in ['freq']:
-                sql = "ALTER TABLE {0} MODIFY {1} varchar(10) NOT NULL".format(strTB, strColumn)
+            if strColumn.startswith('str') or strColumn in ['freq', 'ContractRange']:
+                sql = "ALTER TABLE {0} MODIFY {1} varchar(20) NOT NULL".format(strTB, strColumn)
             else:
                 sql = "ALTER TABLE {0} MODIFY {1} double".format(strTB, strColumn)
             cur.execute(sql)
