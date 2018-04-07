@@ -92,7 +92,7 @@ dictStrategyParamRange['DualThrustIH'] = {
         'Secu': ['ih.cfe'],
         'strModelName': ['DualThrust'],
         'NDay': [6],
-        'K': [0.28],
+        'K': [0.25],
         'NPeriodRollingFast': [30],
         'strCloseAtDayEnd': listCloseAtDayEnd,
         'freq': ['1min'],
