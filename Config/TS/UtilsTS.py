@@ -216,7 +216,7 @@ def getAllContract(SecuCode, dtStart):
 def prepareTrend(dtStart):
     import ThaiExpress.Common.Utils as Utils
     reload(Utils)
-    listSecuCode = Utils.ParamRange.listSecuCFE
+    listSecuCode = Utils.ParamRange.listSecuSHF + Utils.ParamRange.listSecuCZC + Utils.ParamRange.listSecuDCE + Utils.ParamRange.listSecuCFE
     
     #for SecuCode in dfAll.index.get_level_values('SecuCode').unique():
     #listSecuCode = ['cf.czc']
@@ -318,7 +318,6 @@ def getTS(dtStart, dictOption=None):
     
 if __name__ == '__main__': 
     if Utils.boolUsingDB:
-        #prepareTrend(CDB.Utils.UtilsDB.getDTLastData()-datetime.timedelta(30, 0))
         prepareTrend(Utils.dtBackTestStart)
     else:
         funcPrepareDataExcel()

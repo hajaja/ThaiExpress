@@ -33,7 +33,7 @@ def generateXY(df, NDayTest):
 
     # momentum
     if boolMomentum:
-        listNDayMOM = [5, 10, 20, 60]
+        listNDayMOM = [5, 10, 20, 60, 120]
         strColumn = 'Close'
         for nDayMOM in listNDayMOM:
             strFactor = 'MOM%d'%nDayMOM

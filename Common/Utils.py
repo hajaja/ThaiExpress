@@ -35,16 +35,6 @@ reload(CDB)
 import platform
 strSystem = 'PC'
 dirDataSource_1min = '/mnt/Tera/data/Future/1min/'
-#if platform.uname()[1] == 'Z240':
-#    dirDataSource = '/home/dongcs/workspace/python/ThaiExpress/Data/' 
-#    #dirResultPerCase = '/home/dongcs/workspace/python/ThaiExpress/Out/'
-#    dirResultPerCase = '/mnt/Tera/Code_Result/'
-#elif platform.uname()[1] == 'QUANT':
-#    dirDataSource = '/root/workspace/ThaiExpress/Data/'
-#    dirResultPerCase = '/root/workspace/ThaiExpress/Output/'
-#elif platform.uname()[1] == 'htamcquantserver':
-#    dirDataSource = '/home/dongcs/workspace/ThaiExpress/Data/'
-#    dirResultPerCase = '/home/dongcs/workspace/ThaiExpress/Output/'
 
 dirProjectRoot = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 dirDataSource = dirProjectRoot + '/Data/'
@@ -61,7 +51,7 @@ COMMISSION = 0.0005         # 3CNY is cost when buying or selling a contract wit
 TOTALMONEY = 200e4          # the total money can be invested
 LEVERAGE = 1.0              # the contract value cannot be larger than TOTALMONEY * LEVERAGE
 NThresholdVolume = 1000     # contracts with daily volume lower than 1000 cannot be traded 
-boolMonitor = False          # True: used for Monitor/ only 
+boolMonitor = True          # True: used for Monitor/ only 
 boolClearData = True        # True: clear temporary data, to redo everything. 
 boolDominantChangeOnlyOnFriday = False   # True: in concat.py, only change dominant contract on Friday.
 UpperPositionSingleContract = 0.5
@@ -257,19 +247,6 @@ def getTradingDataPoint_Commodity_File(dictDataSpec):
     freq = dictDataSpec['freq']
     Secu = dictDataSpec['Secu']
     if freq == '1day':
-        #if dictDataSpec.has_key('boolGenerateTimeStandard') and dictDataSpec['boolGenerateTimeStandard']:
-        #    """
-        #    this part is for the DTRebalance generation. even for monitor usage,
-        #    the DT rebalance date is generated according to history, and this is
-        #    the reason we need concat a ExeCommodityFuture_DTRebalance in
-        #    Monitor/TSTSM4/TopTSTSM4.py
-        #    """
-        #    if boolMonitor:
-        #        strFileAddressAll = dictDataSpec['strFilePrefix'] + '/' + freq + '/' + 'ExeCommodityFuture_DTRebalance.pickle'
-        #    else:
-        #        strFileAddressAll = dictDataSpec['strFilePrefix'] + '/' + freq + '/' + 'ExeCommodityFuture_BackTest.pickle'
-        #else:
-        #    strFileAddressAll = dictDataSpec['strFilePrefix'] + '/' + freq + '/' + strDailyData
         strFileAddressAll = dictDataSpec['strFilePrefix'] + '/' + freq + '/' + strDailyData
 
         dfXY = pd.read_pickle(strFileAddressAll)

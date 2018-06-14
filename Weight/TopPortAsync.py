@@ -336,7 +336,7 @@ def funcTopPort(strParamSweep):
             strTB = dictDataSpec['strModelName']
             strTB = Utils.UtilsDB.strTBPrefixPosition + strTB
             listColumnIndex = ['trade_date', 'code'] + listParam
-            #Utils.UtilsDB.saveTB_DAILY(Utils.UtilsDB.DB_NAME_POSITION, strTB, df, listColumnIndex)
+            Utils.UtilsDB.saveTB_DAILY(Utils.UtilsDB.DB_NAME_POSITION, strTB, df, listColumnIndex)
 
             # sDailyReturn
             df = pd.concat([seriesDailyReturn, seriesDailyPosition], axis=1)
