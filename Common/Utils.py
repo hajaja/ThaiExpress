@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 import pandas as pd
 import datetime
 import numpy as np
@@ -51,7 +52,7 @@ COMMISSION = 0.0005         # 3CNY is cost when buying or selling a contract wit
 TOTALMONEY = 200e4          # the total money can be invested
 LEVERAGE = 1.0              # the contract value cannot be larger than TOTALMONEY * LEVERAGE
 NThresholdVolume = 1000     # contracts with daily volume lower than 1000 cannot be traded 
-boolMonitor = True          # True: used for Monitor/ only 
+boolMonitor = False          # True: used for Monitor/ only 
 boolClearData = True        # True: clear temporary data, to redo everything. 
 boolDominantChangeOnlyOnFriday = False   # True: in concat.py, only change dominant contract on Friday.
 UpperPositionSingleContract = 0.5

@@ -65,6 +65,7 @@ for nSpec, dictDataSpec in enumerate(listDictDataSpec):
 
     # read data & append a pseudo tomorrow data, this is for generating indicator tomorrow
     dfAll = Utils.getTradingDataPoint_Commodity(dictDataSpec).replace(np.inf, np.nan)
+    raise Exception
     dtLastObservation = dfAll.index[-1]
     dtEnter = dtLastObservation + datetime.timedelta(1, 0)
     if dtEnter.weekday() >= 5:
@@ -73,6 +74,7 @@ for nSpec, dictDataSpec in enumerate(listDictDataSpec):
     rowLast.name = dtEnter
     dfAll = dfAll.append(rowLast)
     
+    dfAll.name = dictDataSpec['Secu']
     dictDataSpec['df'] = dfAll
     seriesIndicatorAll = UtilsTech.generateIndicator(dictDataSpec)
     

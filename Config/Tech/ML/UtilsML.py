@@ -24,6 +24,7 @@ def generateXY(df, NDayTest):
     boolMomentum = True
     boolMomentumCarry = False
     boolCarry = False
+    boolHF = True
     
     # assign dfTS
     if boolMomentumCarry or boolCarry:
@@ -54,6 +55,24 @@ def generateXY(df, NDayTest):
         #listFactor.append('TS2')
         dfRaw.ix[ixCommon, 'pRank'] = dfTS.xs(dictDataSpec['Secu'], level='SecuCode').ix[ixCommon, 'pRank']
         listFactor.append('pRank')
+
+    # read High Frequency Data
+    if boolHF:
+        NDayHFRolling = 20
+        import CommodityDataBase as CDB
+        reload(CDB)
+        import RoyalMountain.DataBase.MySQLDBAPI as MySQLDBAPI
+        reload(MySQLDBAPI)
+        con = MySQLDBAPI.connect(CDB.Utils.UtilsDB.strMySQLDB)
+        sql = "select * from CommodityDataBase.HFFactor_Daily where SecuCode='{0}'".format(df.name)
+        dfHFFactor = pd.read_sql(sql, con)
+        dfHFFactor = dfHFFactor.set_index('TradingDay').sort_index()
+        listColumnHF = dfHFFactor.columns.difference(['index', 'SecuCode', 'PVF_SplitStyle'])
+        dfHFFactor = dfHFFactor[listColumnHF]
+        dfHFFactor = dfHFFactor.rolling(NDayHFRolling).mean()
+        #dfHFFactor = dfHFFactor / dfHFFactor.shift(NDayHFRolling) - 1
+        con.dispose()
+        #raise Exception
 
     # drop na
     df = df[df[listFactor].isnull().sum(axis=1)==0]
@@ -90,11 +109,15 @@ def prepareDictModelPoint(dictDataSpec):
     elif dictDataSpec['strModelName'] == 'GaussianHMM':
         dictModel['name'] = 'GaussianHMM'
         dictModel['SEED_INSIDE_MODEL'] = 0
+    elif dictDataSpec['strModelName'] == 'RandomForestClassifier':
+        dictModel['name'] = 'RandomForestClassifier'
+        dictModel['SEED_INSIDE_MODEL'] = 0
 
     return dictModel
 
 def generateIndicatorPoint(dictDataSpec):
     dfRaw = dictDataSpec['df'].copy()
+    dfRaw.name = dictDataSpec['df'].name
     dfRaw['indicator'] = np.nan
 
     # param

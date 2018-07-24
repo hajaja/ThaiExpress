@@ -34,9 +34,10 @@ dfSecuPairIPA = pd.DataFrame([
 ############
 dictStrategyParamRange['ML_Test0'] = {
         'Secu': listSecuAll,
-        'strModelName': ['DecisionTreeClassifier', 'SVM', 'LogisticRegression'],
-        'NDayTrain': [60, 120, 240],
-        'NDayTest': [20, 40],
+        #'strModelName': ['DecisionTreeClassifier', 'SVM', 'LogisticRegression', 'RandomForestClassifier'],
+        'strModelName': ['SVM'],
+        'NDayTrain': [60],
+        'NDayTest': [20],
         'strCloseAtDayEnd': listCloseAtDayEnd,
         'freq': ['1day'],
         }

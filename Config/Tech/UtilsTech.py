@@ -17,7 +17,7 @@ import logging
 # wrapper
 ###################
 def generateIndicator(dictDataSpec):
-    if dictDataSpec['strModelName'] in ['SVM', 'DecisionTreeClassifier', 'LogisticRegression', 'MultinomialNB', 'MultinomialNBSymbol', 'GaussianHMM', 'GaussianPHMM']:
+    if dictDataSpec['strModelName'] in ['SVM', 'DecisionTreeClassifier', 'LogisticRegression', 'MultinomialNB', 'MultinomialNBSymbol', 'GaussianHMM', 'GaussianPHMM', 'RandomForestClassifier']:
         import ThaiExpress.Config.Tech.ML as ML
         reload(ML)
         return ML.UtilsML.generateIndicatorPoint(dictDataSpec)

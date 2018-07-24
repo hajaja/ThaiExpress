@@ -1,4 +1,4 @@
-#coding=utf8
+# -*- coding:utf8 -*-
 import pandas as pd
 import datetime
 import numpy as np
@@ -19,7 +19,7 @@ def funcTopPort(strParamSweep):
     ######################################################### 
     # read stored results
     listDictPerTopPort = Utils.getFileAddressForTopPort(strParamSweep)
-    
+
     # read dfPCTAll, dfVolatilityAll
     print 'reading data'
     #dictDataSpec = dict(Utils.dictDataSpecTemplate)
